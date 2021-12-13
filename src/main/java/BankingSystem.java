@@ -29,6 +29,7 @@ public class BankingSystem {
                 case "0" -> System.exit(0);
                 case "1" -> registerAccount();
                 case "2" -> logIntoAccount();
+                default -> System.out.println("You've entered invalid menu item.\n");
             }
         }
     }
@@ -63,7 +64,7 @@ public class BankingSystem {
 
         if (isValid) {
             System.out.println("\nYou have successfully logged in!\n");
-            currentAccount = dao.get(inputtedCardNumber, inputtedCardPIN).get();
+            dao.get(inputtedCardNumber, inputtedCardPIN).ifPresent(account -> currentAccount = account);
             accountMenu();
         } else {
             System.out.println("\nWrong card number or PIN!\n");
@@ -98,6 +99,7 @@ public class BankingSystem {
                 case "3" -> doTransfer();
                 case "4" -> closeAccount();
                 case "5" -> logOut();
+                default -> System.out.println("You've entered invalid menu item.\n");
             }
         }
     }
@@ -110,7 +112,7 @@ public class BankingSystem {
         System.out.println("Enter income:");
         int income = Integer.parseInt(scanner.next());
         dao.update(currentAccount.card().number(), income);
-        currentAccount = dao.get(currentAccount.card().number(), currentAccount.card().pin()).get();
+        dao.get(currentAccount.card().number(), currentAccount.card().pin()).ifPresent(account -> currentAccount = account);
         System.out.println("Income was added!\n");
     }
 
@@ -144,7 +146,7 @@ public class BankingSystem {
 
         dao.update(currentAccount.card().number(), -moneyToTransfer);
         dao.update(recipientCardNumber, moneyToTransfer);
-        currentAccount = dao.get(currentAccount.card().number(), currentAccount.card().pin()).get();
+        dao.get(currentAccount.card().number(), currentAccount.card().pin()).ifPresent(account -> currentAccount = account);
         System.out.println("Success!\n");
     }
 
