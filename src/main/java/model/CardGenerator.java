@@ -1,4 +1,4 @@
-package card;
+package model;
 
 import java.util.Random;
 
@@ -14,37 +14,19 @@ public class CardGenerator {
         return new Card(generateCard(), generatePIN());
     }
 
-    public boolean isCorrectCardNumber(String cardNumber) {
-        if (cardNumber.length() != 16) {
-            return false;
-        }
-
-        int bin, accountIdentifier, checkSum;
-
-        try {
-            bin = Integer.parseInt(cardNumber.substring(0, 6));
-            accountIdentifier = Integer.parseInt(cardNumber.substring(6, 15));
-            checkSum = Integer.parseInt(cardNumber.substring(15));
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
-        return luhnAlgorithm(bin, accountIdentifier) == checkSum;
-    }
-
     private String generateCard() {
         final int bin = 400_000;
         final int accountIdentifier = random.nextInt(900_000_000) + 100_000_000;
         final int checkSum = luhnAlgorithm(bin, accountIdentifier);
-        return String.valueOf(bin) + accountIdentifier + checkSum;
+        return String.format("%d%d%d", bin, accountIdentifier, checkSum);
     }
 
     private String generatePIN() {
         return String.valueOf(1000 + random.nextInt(9000));
     }
 
-    private int luhnAlgorithm(int bin, int accountIdentifier) {
-        String cardNumbersWithoutChecksum = ("" + bin + accountIdentifier);
+    public int luhnAlgorithm(int bin, int accountIdentifier) {
+        String cardNumbersWithoutChecksum = String.format("%d%d", bin, accountIdentifier);
         int sum = 0;
 
         for (int i = 0; i < cardNumbersWithoutChecksum.length(); i++) {

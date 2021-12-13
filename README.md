@@ -2,6 +2,11 @@
 
 ----
 
+In order to start using this program, you need to pass **_an argument -fileName_** and the name of the SQLite db
+with **_.s3db extension_**
+
+----
+
 **In a nutshell, this project is a simple banking system with menu, that has following items:**
 
 ```
@@ -23,4 +28,4 @@
 
 ----
 
-**Used technologies:** _Java, SQLite, Gradle._
+**Used technologies:** _Java, SQLite, Maven._
