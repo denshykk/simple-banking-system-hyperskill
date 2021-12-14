@@ -58,12 +58,15 @@ class BankingSystem {
         System.out.println("Enter your PIN:");
         String inCardPIN = scanner.next();
 
-        accountDao.get(inCardNum, inCardPIN).ifPresentOrElse(account -> {
-                    currentAccount = account;
-                    System.out.println("\nYou have successfully logged in!\n");
-                    accountMenu();
-                },
+        accountDao.get(inCardNum, inCardPIN).ifPresentOrElse(
+                this::logInSuccess,
                 () -> System.out.println("\nWrong card number or PIN!\n"));
+    }
+
+    private void logInSuccess(Account account) {
+        currentAccount = account;
+        System.out.println("\nYou have successfully logged in!\n");
+        accountMenu();
     }
 
     private void accountMenu() {
@@ -140,8 +143,8 @@ class BankingSystem {
 
             accountDao.update(recipientCardNumber, moneyToTransfer);
 
-            int negateTransferredMoney = -moneyToTransfer;
-            updateAccount(currentAccount.getCard().number(), negateTransferredMoney);
+            int negateRemittance = -moneyToTransfer;
+            updateAccount(currentAccount.getCard().number(), negateRemittance);
 
             System.out.println("Success!\n");
         } catch (NumberFormatException e) {
@@ -149,7 +152,6 @@ class BankingSystem {
             doTransfer();
         }
     }
-
 
     private void closeAccount() {
         accountDao.delete(currentAccount);

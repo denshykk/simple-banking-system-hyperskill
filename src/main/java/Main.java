@@ -1,10 +1,10 @@
 import dao.AccountDao;
-import dao.DBConfiguration;
+import configuration.DBConfiguration;
 
 public class Main {
 
     public static void main(String[] args) {
-        if (args[0].equals("-fileName") && args.length == 2) {
+        if (args.length == 2 && args[0].equals("-fileName")) {
             DBConfiguration dbConfiguration = new DBConfiguration(args[1]);
             AccountDao accountDao = new AccountDao(dbConfiguration);
 

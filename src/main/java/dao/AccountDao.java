@@ -1,5 +1,6 @@
 package dao;
 
+import configuration.DBConfiguration;
 import model.Account;
 import model.Card;
 

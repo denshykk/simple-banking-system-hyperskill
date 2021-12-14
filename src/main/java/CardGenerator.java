@@ -2,7 +2,7 @@ import model.Card;
 
 import java.util.Random;
 
-public class CardGenerator {
+class CardGenerator {
 
     private final Random random;
 
