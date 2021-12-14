@@ -6,7 +6,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class DBCreator {
+public class DBConfiguration {
 
     private static final String CREATE_TABLE_QUERY = """
             CREATE TABLE IF NOT EXISTS account(
@@ -18,15 +18,15 @@ public class DBCreator {
     private final SQLiteDataSource dataSource;
     private Connection connection;
 
-    public DBCreator(String dbPath) {
+    public DBConfiguration(String dbName) {
         dataSource = new SQLiteDataSource();
 
-        if (dbPath.contains(".s3db")) {
-            dataSource.setUrl("jdbc:sqlite:" + dbPath);
+        if (dbName.contains(".s3db")) {
+            dataSource.setUrl("jdbc:sqlite:" + dbName);
             dbConnectionAttempt();
             createTable();
         } else {
-            throw new IllegalArgumentException("Wrong file extension: " + dbPath);
+            throw new IllegalArgumentException("Wrong file extension: " + dbName);
         }
     }
 
@@ -47,6 +47,14 @@ public class DBCreator {
             statement.executeUpdate(CREATE_TABLE_QUERY);
         } catch (SQLException e) {
             System.err.println("Cannot create table in the database!");
+        }
+    }
+
+    public void close() {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            System.err.println("Error closing the connection with database!");
         }
     }
 }

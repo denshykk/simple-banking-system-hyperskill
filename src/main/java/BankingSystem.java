@@ -1,19 +1,18 @@
 import dao.AccountDao;
 import model.Account;
 import model.Card;
-import model.CardGenerator;
 
 import java.util.Scanner;
 
-public class BankingSystem {
+class BankingSystem {
 
-    private final AccountDao dao;
+    private final AccountDao accountDao;
     private final CardGenerator cardGenerator;
     private final Scanner scanner;
     private Account currentAccount;
 
-    public BankingSystem(AccountDao dao) {
-        this.dao = dao;
+    public BankingSystem(AccountDao accountDao) {
+        this.accountDao = accountDao;
         cardGenerator = new CardGenerator();
         scanner = new Scanner(System.in);
     }
@@ -25,10 +24,7 @@ public class BankingSystem {
             String input = scanner.next();
 
             switch (input) {
-                case "0" -> {
-                    scanner.close();
-                    System.exit(0);
-                }
+                case "0" -> stopApplication();
                 case "1" -> registerAccount();
                 case "2" -> logIntoAccount();
                 default -> System.out.println("You've entered invalid menu item.\n");
@@ -45,7 +41,7 @@ public class BankingSystem {
 
     private void registerAccount() {
         Card card = cardGenerator.generateCredentials();
-        dao.save(new Account(card, 0));
+        accountDao.save(new Account(card, 0));
         System.out.printf("""
                 Your card has been created
                 Your card number:
@@ -61,18 +57,13 @@ public class BankingSystem {
         String inCardNum = scanner.next();
         System.out.println("Enter your PIN:");
         String inCardPIN = scanner.next();
-        boolean isValid = accountValidation(inCardNum, inCardPIN);
 
-        if (isValid) {
-            System.out.println("\nYou have successfully logged in!\n");
-            dao.get(inCardNum, inCardPIN).ifPresentOrElse(account -> currentAccount = account,
-                    () -> System.out.println("\nWrong card number or PIN!\n"));
-            accountMenu();
-        }
-    }
-
-    private boolean accountValidation(String inputtedCardNumber, String inputtedCardPIN) {
-        return dao.get(inputtedCardNumber, inputtedCardPIN).isPresent();
+        accountDao.get(inCardNum, inCardPIN).ifPresentOrElse(account -> {
+                    currentAccount = account;
+                    System.out.println("\nYou have successfully logged in!\n");
+                    accountMenu();
+                },
+                () -> System.out.println("\nWrong card number or PIN!\n"));
     }
 
     private void accountMenu() {
@@ -89,12 +80,7 @@ public class BankingSystem {
             System.out.println();
 
             switch (input) {
-                case "0" -> {
-                    scanner.close();
-                    dao.close();
-                    System.out.println("Bye!");
-                    System.exit(0);
-                }
+                case "0" -> stopApplication();
                 case "1" -> getBalance();
                 case "2" -> addIncome();
                 case "3" -> doTransfer();
@@ -133,18 +119,7 @@ public class BankingSystem {
                            "Enter card number:");
         String recipientCardNumber = scanner.next();
 
-        if (recipientCardNumber.equals(currentAccount.getCard().number())) {
-            System.out.println("You can't transfer money to the same account!\n");
-            return;
-        }
-
-        if (!cardNumberValidation(recipientCardNumber)) {
-            System.out.println("Probably you made a mistake in the card number. Please try again!\n");
-            return;
-        }
-
-        if (!dao.contains(recipientCardNumber)) {
-            System.out.println("Such a card does not exist.\n");
+        if (!recipientCredentialsValidation(recipientCardNumber)) {
             return;
         }
 
@@ -163,8 +138,11 @@ public class BankingSystem {
                 return;
             }
 
-            dao.update(recipientCardNumber, moneyToTransfer);
-            updateAccount(currentAccount.getCard().number(), -moneyToTransfer);
+            accountDao.update(recipientCardNumber, moneyToTransfer);
+
+            int negateTransferredMoney = -moneyToTransfer;
+            updateAccount(currentAccount.getCard().number(), negateTransferredMoney);
+
             System.out.println("Success!\n");
         } catch (NumberFormatException e) {
             System.out.println("You should enter the amount of money you want to transfer!\n");
@@ -172,8 +150,9 @@ public class BankingSystem {
         }
     }
 
+
     private void closeAccount() {
-        dao.delete(currentAccount);
+        accountDao.delete(currentAccount);
         System.out.println("The account has been closed!\n");
         currentAccount = null;
     }
@@ -184,12 +163,12 @@ public class BankingSystem {
     }
 
     private void updateAccount(String cardNumber, int transferredMoney) {
-        dao.update(cardNumber, transferredMoney);
-        dao.get(cardNumber, currentAccount.getCard().pin())
+        accountDao.update(cardNumber, transferredMoney);
+        accountDao.get(cardNumber, currentAccount.getCard().pin())
                 .ifPresent(account -> currentAccount.setBalance(currentAccount.getBalance() + transferredMoney));
     }
 
-    public boolean cardNumberValidation(String cardNumber) {
+    private boolean cardNumberValidation(String cardNumber) {
         if (cardNumber.length() != 16) {
             return false;
         }
@@ -205,5 +184,31 @@ public class BankingSystem {
         }
 
         return cardGenerator.luhnAlgorithm(bin, accountIdentifier) == checkSum;
+    }
+
+    private boolean recipientCredentialsValidation(String recipientCardNumber) {
+        if (recipientCardNumber.equals(currentAccount.getCard().number())) {
+            System.out.println("You can't transfer money to the same account!\n");
+            return false;
+        }
+
+        if (!cardNumberValidation(recipientCardNumber)) {
+            System.out.println("Probably you made a mistake in the card number. Please try again!\n");
+            return false;
+        }
+
+        if (!accountDao.contains(recipientCardNumber)) {
+            System.out.println("Such a card does not exist.\n");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void stopApplication() {
+        scanner.close();
+        accountDao.dbConfiguration().close();
+        System.out.println("Bye!");
+        System.exit(0);
     }
 }

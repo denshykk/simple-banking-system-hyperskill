@@ -1,4 +1,4 @@
-package model;
+import model.Card;
 
 import java.util.Random;
 

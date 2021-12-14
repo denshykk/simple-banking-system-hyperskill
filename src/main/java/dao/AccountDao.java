@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 
-public record AccountDao(DBCreator dbCreator) {
+public record AccountDao(DBConfiguration dbConfiguration) {
 
     private static final String GET_ACCOUNT_QUERY = "SELECT number, pin, balance FROM account WHERE number = ? AND pin = ?";
     private static final String ACCOUNT_IS_PRESENT_QUERY = "SELECT number FROM account WHERE number = ?";
@@ -17,14 +17,13 @@ public record AccountDao(DBCreator dbCreator) {
     private static final String DELETE_ACCOUNT_QUERY = "DELETE FROM account WHERE number = ?";
 
     public Optional<Account> get(String cardNumber, String cardPIN) {
-        try (PreparedStatement statement = dbCreator.getConnection().prepareStatement(GET_ACCOUNT_QUERY)) {
+        try (PreparedStatement statement = dbConfiguration.getConnection().prepareStatement(GET_ACCOUNT_QUERY)) {
             statement.setString(1, cardNumber);
             statement.setString(2, cardPIN);
             ResultSet resultSet = statement.executeQuery();
 
-            int balance = resultSet.getInt("balance");
-
             if (resultSet.next()) {
+                int balance = resultSet.getInt("balance");
                 Account resultAccount = new Account(new Card(cardNumber, cardPIN), balance);
                 return Optional.of(resultAccount);
             }
@@ -35,7 +34,7 @@ public record AccountDao(DBCreator dbCreator) {
     }
 
     public boolean contains(String cardNumber) {
-        try (PreparedStatement statement = dbCreator.getConnection().prepareStatement(ACCOUNT_IS_PRESENT_QUERY)) {
+        try (PreparedStatement statement = dbConfiguration.getConnection().prepareStatement(ACCOUNT_IS_PRESENT_QUERY)) {
             statement.setString(1, cardNumber);
             ResultSet resultSet = statement.executeQuery();
 
@@ -49,7 +48,7 @@ public record AccountDao(DBCreator dbCreator) {
     }
 
     public void save(Account account) {
-        try (PreparedStatement statement = dbCreator.getConnection().prepareStatement(CREATE_ACCOUNT_QUERY)) {
+        try (PreparedStatement statement = dbConfiguration.getConnection().prepareStatement(CREATE_ACCOUNT_QUERY)) {
             statement.setString(1, account.getCard().number());
             statement.setString(2, account.getCard().pin());
             statement.executeUpdate();
@@ -59,7 +58,7 @@ public record AccountDao(DBCreator dbCreator) {
     }
 
     public void update(String cardNumber, int income) {
-        try (PreparedStatement statement = dbCreator.getConnection().prepareStatement(UPDATE_ACCOUNT_QUERY)) {
+        try (PreparedStatement statement = dbConfiguration.getConnection().prepareStatement(UPDATE_ACCOUNT_QUERY)) {
             statement.setString(1, String.valueOf(income));
             statement.setString(2, cardNumber);
             statement.executeUpdate();
@@ -69,19 +68,11 @@ public record AccountDao(DBCreator dbCreator) {
     }
 
     public void delete(Account account) {
-        try (PreparedStatement statement = dbCreator.getConnection().prepareStatement(DELETE_ACCOUNT_QUERY)) {
+        try (PreparedStatement statement = dbConfiguration.getConnection().prepareStatement(DELETE_ACCOUNT_QUERY)) {
             statement.setString(1, account.getCard().number());
             statement.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Cannot delete account!");
-        }
-    }
-
-    public void close() {
-        try {
-            dbCreator.getConnection().close();
-        } catch (SQLException e) {
-            System.err.println("Error closing the connection with database!");
         }
     }
 }
