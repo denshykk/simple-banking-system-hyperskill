@@ -50,7 +50,7 @@ public class DBConfiguration {
         }
     }
 
-    public void close() {
+    public void closeConnection() {
         try {
             connection.close();
         } catch (SQLException e) {

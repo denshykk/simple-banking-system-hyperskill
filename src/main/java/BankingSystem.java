@@ -209,7 +209,7 @@ class BankingSystem {
 
     private void stopApplication() {
         scanner.close();
-        accountDao.dbConfiguration().close();
+        accountDao.dbConfiguration().closeConnection();
         System.out.println("Bye!");
         System.exit(0);
     }
