@@ -1,4 +1,6 @@
 package model;
 
-public record Card(String number, String pin) {
-}
+/**
+ * This record represents a credit card.
+ */
+public record Card(String number, String pin) {}

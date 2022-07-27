@@ -1,24 +1,19 @@
 package model;
 
-public final class Account {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-    private final Card card;
-    private int balance;
+/**
+ * This class represents an account.
+ */
+@Getter
+@AllArgsConstructor
+public class Account {
 
-    public Account(Card card, int balance) {
-        this.card = card;
-        this.balance = balance;
-    }
+  private final Card card;
+  @Setter
+  private       int  balance;
 
-    public Card getCard() {
-        return card;
-    }
-
-    public int getBalance() {
-        return balance;
-    }
-
-    public void setBalance(int balance) {
-        this.balance = balance;
-    }
 }
+
